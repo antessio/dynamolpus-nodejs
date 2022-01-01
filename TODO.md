@@ -33,7 +33,6 @@
     - get by sk and data >: (sk,data)
     - get by sk and data between: (sk,data_from,data_to)
 
-
 - QueryService
     - queryAll: (collection,start_from,limit)
     - queryRange: (collection,from_value,to_value, prefix)
@@ -79,6 +78,13 @@
 - AggregationService
 
 - DynamoStreamService
+
+- AuthorizationService
+    - getBearerAuthorization
+    - getApiKeyAuthorization
+    - getHttpSignatureAuthorization
+    - getBasicAuthorization
+    
 
 - API:
     - /v1/

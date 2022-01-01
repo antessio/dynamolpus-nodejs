@@ -1,0 +1,144 @@
+org: antessio
+app: dynamoplus
+service: dynamoplus-nodejs
+frameworkVersion: '2 || 3'
+
+plugins:
+  - serverless-offline
+  - serverless-plugin-typescript
+
+
+custom:
+  system_collections: "collection,index,client_authorization"
+  base_path: "dynamoplus"
+  allowed_origins: ${file(./secrets.json):ALLOWED_ORIGINS}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: '20201221'
+  region: eu-west-1
+  memorySize: 256
+
+  environment:
+    ALLOWED_ORIGINS: ${self:custom.allowed_origins}
+    DYNAMODB_DOMAIN_TABLE: ${self:service}-${opt:stage, self:provider.stage}-domain
+    DYNAMODB_SYSTEM_TABLE: ${self:service}-${opt:stage, self:provider.stage}-system
+    STAGE: ${opt:stage, self:provider.stage}
+    REGION: ${self:provider.region}
+    ENTITIES: ${self:custom.system_collections}
+    ROOT_ACCOUNT: ${file(./secrets.json):ROOT_ACCOUNT}
+    ROOT_PASSWORD: ${file(./secrets.json):ROOT_PASSWORD}
+    JWT_SECRET: ${file(./secrets.json):JWT_SECRET}
+    DYNAMODB_HOST: http://localhost
+    DYNAMODB_PORT: 8000
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:CreateTable
+        # New permissions needed for stream
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:DescribeTable
+        - dynamodb:DescribeStream
+        - dynamodb:ListStreams
+      Resource: [!GetAtt SystemDynamoDbTable.Arn, !Join [ '/',[!GetAtt SystemDynamoDbTable.Arn,index/*]], !GetAtt DomainDynamoDbTable.Arn, !Join [ '/',[!GetAtt DomainDynamoDbTable.Arn,index/*]]]
+
+functions:
+  hello:
+    handler: src/app.lambdaHandler
+    events:
+      - httpApi:
+          path: /
+          method: get
+
+
+resources:
+  Resources:
+    # This response is needed for custom authorizer failures cors support ¯\_(ツ)_/¯
+    # GatewayResponse:
+    #   Type: 'AWS::ApiGateway::GatewayResponse'
+    #   Properties:
+    #     ResponseParameters:
+    #       gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+    #       gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+    #     ResponseType: EXPIRED_TOKEN
+    #     RestApiId:
+    #       Ref: 'ApiGatewayRestApi'
+    #     StatusCode: '401'
+    # AuthFailureGatewayResponse:
+    #   Type: 'AWS::ApiGateway::GatewayResponse'
+    #   Properties:
+    #     ResponseParameters:
+    #       gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+    #       gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+    #     ResponseType: UNAUTHORIZED
+    #     RestApiId:
+    #       Ref: 'ApiGatewayRestApi'
+    #     StatusCode: '401'
+    SystemDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+          - AttributeName: data
+            AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        BillingMode: "PAY_PER_REQUEST"
+        TableName: ${self:provider.environment.DYNAMODB_SYSTEM_TABLE}
+        GlobalSecondaryIndexes:
+          - IndexName: sk-data-index
+            KeySchema:
+              - AttributeName: sk
+                KeyType: HASH
+              - AttributeName: data
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+    DomainDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+          - AttributeName: data
+            AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        BillingMode: "PAY_PER_REQUEST"
+        TableName: ${self:provider.environment.DYNAMODB_DOMAIN_TABLE}
+        GlobalSecondaryIndexes:
+          - IndexName: sk-data-index
+            KeySchema:
+              - AttributeName: sk
+                KeyType: HASH
+              - AttributeName: data
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES 
