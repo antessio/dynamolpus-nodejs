@@ -53,7 +53,7 @@ provider:
 
 functions:
   hello:
-    handler: src/app.lambdaHandler
+    handler: src/aws/app.lambdaHandler
     events:
       - httpApi:
           path: /

@@ -2,6 +2,7 @@
     "name": "dynamoplus-nodejs",
     "version": "1.0.0",
     "scripts": {
+        "test": "NODE_ENV=test mocha --check-leaks -r ts-node/register -r tsconfig-paths/register \"src/test/**/*.spec.ts\""
     },
     "dependencies": {
         "aws-sdk": "^2.932.0",
