@@ -1,0 +1,14 @@
+{
+        "items":[
+        {"pk":"example#0","sk":"example","data":"0","document":{"id":0,"key":"test"}},
+        {"pk":"example#1","sk":"example","data":"1","document":{"id":1,"key":"test"}},
+        {"pk":"example#2","sk":"example","data":"2","document":{"id":2,"key":"test"}},
+        {"pk":"example#3","sk":"example","data":"3","document":{"id":3,"key":"test"}},
+        {"pk":"example#4","sk":"example","data":"4","document":{"id":4,"key":"test"}},
+        {"pk":"example#5","sk":"example","data":"5","document":{"id":5,"key":"test"}},
+        {"pk":"example#6","sk":"example","data":"6","document":{"id":6,"key":"test"}},
+        {"pk":"example#7","sk":"example","data":"7","document":{"id":7,"key":"test"}},
+        {"pk":"example#8","sk":"example","data":"8","document":{"id":8,"key":"test"}},
+        {"pk":"example#9","sk":"example","data":"9","document":{"id":9,"key":"test"}}
+        ]
+}

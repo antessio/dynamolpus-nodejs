@@ -1,4 +1,4 @@
-import { DynamoDB } from "aws-sdk"
+import { Credentials, DynamoDB } from "aws-sdk"
 
 let client = null
 
@@ -15,9 +15,12 @@ export const getClient = (): DynamoDB => {
 
 export const getLocalClient = ():DynamoDB =>{
     if(client) return client
+
+
     client = new DynamoDB({
         endpoint: 'http://localhost:8000',
-        region: 'eu-west-1'
+        region: 'eu-west-1',
+        credentials: new Credentials("","")
     });
     return client
 
